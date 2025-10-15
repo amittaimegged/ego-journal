@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>יומן ההתבוננות באני הפרסונלי</title>
+  <style>
+    body {
+      font-family: 'Assistant', sans-serif;
+      background-color: #faf9f6;
+      color: #222;
+      max-width: 800px;
+      margin: auto;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    h1 { text-align: center; }
+    textarea {
+      width: 100%;
+      height: 80px;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      background-color: #7da27e;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-right: 0.5rem;
+    }
+    button:hover { background-color: #5b8761; }
+    .entry { background: #fff; border-radius: 10px; padding: 1rem; margin-top: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    hr { margin: 2rem 0; }
+  </style>
+</head>
+<body>
+  <h1>יומן ההתבוננות באני הפרסונלי</h1>
+  <p>ענה/י בכנות על השאלות, מתוך תשומת לב למה שחי בך ברגע זה. כל הרשומות נשמרות רק בדפדפן שלך.</p>
+
+  <form id="journalForm">
+    <label>1. מה קרה עכשיו?</label>
+    <textarea id="situation"></textarea>
+
+    <label>2. מה הרגשתי בגוף?</label>
+    <textarea id="body"></textarea>
+
+    <label>3. אילו מחשבות עלו מיד?</label>
+    <textarea id="thoughts"></textarea>
+
+    <label>4. מה האני ניסה להשיג או להימנע ממנו?</label>
+    <textarea id="ego"></textarea>
+
+    <label>5. איך אני יודע שזה היה האני הפרסונלי?</label>
+    <textarea id="awareness"></textarea>
+
+    <label>6. מה קורה כשאני רק שם לב ולא מתערב?</label>
+    <textarea id="presence"></textarea>
+
+    <label>7. איזו תובנה עלתה לי מהתבוננות זו?</label>
+    <textarea id="insight"></textarea>
+
+    <button type="button" onclick="saveEntry()">שמור רשומה</button>
+    <button type="button" onclick="showEntries()">הצג רשומות</button>
+    <button type="button" onclick="exportEntries()">ייצא הכול</button>
+  </form>
+
+  <hr>
+  <div id="entries"></div>
+
+  <script>
+    function saveEntry() {
+      const entry = {
+        date: new Date().toLocaleString('he-IL'),
+        situation: situation.value.trim(),
+        body: body.value.trim(),
+        thoughts: thoughts.value.trim(),
+        ego: ego.value.trim(),
+        awareness: awareness.value.trim(),
+        presence: presence.value.trim(),
+        insight: insight.value.trim()
+      };
+      if (!entry.situation) { alert('אנא מלא לפחות את הסיטואציה.'); return; }
+      const all = JSON.parse(localStorage.getItem('egoJournal') || '[]');
+      all.push(entry);
+      localStorage.setItem('egoJournal', JSON.stringify(all));
+      document.getElementById('journalForm').reset();
+      alert('נשמר בהצלחה ✨');
+    }
+
+    function showEntries() {
+      const entriesDiv = document.getElementById('entries');
+      entriesDiv.innerHTML = '';
+      const all = JSON.parse(localStorage.getItem('egoJournal') || '[]');
+      if (all.length === 0) { entriesDiv.innerHTML = '<p>אין רשומות עדיין.</p>'; return; }
+      all.slice().reverse().forEach((e) => {
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.innerHTML = `<strong>${e.date}</strong><br>
+          <b>מה קרה:</b> ${e.situation}<br>
+          <b>בגוף:</b> ${e.body}<br>
+          <b>מחשבות:</b> ${e.thoughts}<br>
+          <b>מה ניסה האני:</b> ${e.ego}<br>
+          <b>איך זיהיתי:</b> ${e.awareness}<br>
+          <b>כששמת לב:</b> ${e.presence}<br>
+          <b>תובנה:</b> ${e.insight}`;
+        entriesDiv.appendChild(div);
+      });
+    }
+
+    function exportEntries() {
+      const all = JSON.parse(localStorage.getItem('egoJournal') || '[]');
+      if (all.length === 0) { alert('אין מה לייצא.'); return; }
+      const csv = all.map(e => `${e.date},${e.situation.replace(/,/g,';')},${e.insight.replace(/,/g,';')}`).join('\n');
+      const blob = new Blob([csv], {type: 'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ego_journal.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
